@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "device-features-react-native",
+    "slug": "device-features-react-native",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses your camera to attach photos to travel entries.",
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to auto-fill travel entry addresses.",
+        "NSUserNotificationUsageDescription": "This app sends a notification when your travel entry is saved."
+      }
+    },
+    "android": {
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-image-picker",
+      "expo-location",
+      "expo-notifications"
+    ]
+  }
+}
