@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { showThemedPrompt } from './ThemedPrompt';
 
 type ConfirmNavigationPromptParams = {
   onConfirm: () => void;
@@ -6,20 +6,19 @@ type ConfirmNavigationPromptParams = {
 };
 
 export function showConfirmNavigationPrompt({ onConfirm, onCancel }: ConfirmNavigationPromptParams) {
-  Alert.alert(
-    'Unsaved changes',
-    'Are you sure you want to go to the home screen? your changes will not be saved.',
-    [
+  showThemedPrompt({
+    title: 'Unsaved changes',
+    message: 'Leave this screen? Your unsaved changes will be lost.',
+    actions: [
       {
-        text: 'No',
-        style: 'cancel',
+        label: 'No',
+        variant: 'cancel',
         onPress: onCancel,
       },
       {
-        text: 'Yes',
-        style: 'destructive',
+        label: 'Yes',
         onPress: onConfirm,
       },
     ],
-  );
+  });
 }

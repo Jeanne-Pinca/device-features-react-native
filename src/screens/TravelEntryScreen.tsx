@@ -1,25 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { requestPermissionsAsync } from 'expo-notifications/build/NotificationPermissions';
-import scheduleNotificationAsync from 'expo-notifications/build/scheduleNotificationAsync';
-import setNotificationChannelAsync from 'expo-notifications/build/setNotificationChannelAsync';
-import { AndroidImportance } from 'expo-notifications/build/NotificationChannelManager.types';
-import { setNotificationHandler } from 'expo-notifications/build/NotificationsHandler';
+import * as Notifications from 'expo-notifications';
+import { ThemeToggle } from '../components/ThemeToggle';
 
+import { BackHeader } from '../components/BackHeader';
 import { showConfirmNavigationPrompt } from '../components/ConfirmNavigationPrompt';
+import { showPermissionPrompt } from '../components/PermissionPrompt';
+import { showThemedPrompt } from '../components/ThemedPrompt';
 import type { RootStackParamList } from './HomeScreen';
 import type { TravelEntry } from '../types/travelEntry';
 import { styles } from './styles/TravelEntryScreen.styles';
 
 type TravelEntryScreenProps = NativeStackScreenProps<RootStackParamList, 'TravelEntry'> & {
+  entries: TravelEntry[];
   onSaveEntry: (entry: TravelEntry) => boolean;
+  onUpdateEntry: (entry: TravelEntry) => boolean;
   isDarkMode: boolean;
+  onToggleTheme: () => void;
 };
 
 type ValidationErrors = {
@@ -29,38 +32,56 @@ type ValidationErrors = {
   description?: string;
 };
 
-export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: TravelEntryScreenProps) {
+export function TravelEntryScreen({
+  navigation,
+  route,
+  entries,
+  onSaveEntry,
+  onUpdateEntry,
+  isDarkMode,
+  onToggleTheme,
+}: TravelEntryScreenProps & { onToggleTheme: () => void }) {
   const [entryTitle, setEntryTitle] = useState('');
   const [imageUri, setImageUri] = useState('');
   const [address, setAddress] = useState('');
   const [description, setDescription] = useState('');
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const skipUnsavedPromptRef = useRef(false);
+  const initialValuesRef = useRef({
+    entryTitle: '',
+    imageUri: '',
+    address: '',
+    description: '',
+  });
+
+  const editingEntry = useMemo(() => {
+    const entryId = route.params?.entryId;
+    if (!entryId) {
+      return undefined;
+    }
+
+    return entries.find((entry) => entry.id === entryId);
+  }, [route.params?.entryId, entries]);
+
+  const isEditing = !!editingEntry;
 
   useEffect(() => {
-    const askPermissions = async () => {
-      await ImagePicker.requestCameraPermissionsAsync();
-      await Location.requestForegroundPermissionsAsync();
-      await requestPermissionsAsync();
-
-      await setNotificationChannelAsync('travel-entry', {
-        name: 'Travel Entry Notifications',
-        importance: AndroidImportance.DEFAULT,
-      });
-
-      setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowBanner: true,
-          shouldShowList: true,
-          shouldPlaySound: true,
-          shouldSetBadge: false,
-        }),
-      });
+    const nextValues = {
+      entryTitle: editingEntry?.title ?? '',
+      imageUri: editingEntry?.imageUri ?? '',
+      address: editingEntry?.address ?? '',
+      description: editingEntry?.description ?? '',
     };
 
-    void askPermissions();
-  }, []);
+    setEntryTitle(nextValues.entryTitle);
+    setImageUri(nextValues.imageUri);
+    setAddress(nextValues.address);
+    setDescription(nextValues.description);
+    setErrors({});
+    initialValuesRef.current = nextValues;
+  }, [editingEntry]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
@@ -68,7 +89,11 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
         return;
       }
 
-      const hasUnsavedChanges = !!(imageUri || entryTitle.trim() || address.trim() || description.trim());
+      const hasUnsavedChanges =
+        imageUri !== initialValuesRef.current.imageUri
+        || entryTitle.trim() !== initialValuesRef.current.entryTitle.trim()
+        || address.trim() !== initialValuesRef.current.address.trim()
+        || description.trim() !== initialValuesRef.current.description.trim();
       if (!hasUnsavedChanges) {
         return;
       }
@@ -138,7 +163,10 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
         if (requested.status !== 'granted') {
           setAddress('Location permission denied');
           setErrors((previous) => ({ ...previous, address: undefined }));
-          Alert.alert('Location denied', 'Location permission is required to resolve your current address.');
+          showPermissionPrompt({
+            permissionName: 'Location',
+            reason: 'Enable location permission in settings to auto-fill your current address.',
+          });
           return;
         }
       }
@@ -169,7 +197,11 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
     } catch {
       setAddress('Address unavailable');
       setErrors((previous) => ({ ...previous, address: undefined }));
-      Alert.alert('Location error', 'Unable to fetch location right now.');
+      showThemedPrompt({
+        title: 'Location error',
+        message: 'Unable to fetch location right now.',
+        actions: [{ label: 'OK' }],
+      });
     } finally {
       setIsLoadingAddress(false);
     }
@@ -178,30 +210,73 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
   const handleTakePicture = async () => {
     const cameraPermission = await ImagePicker.getCameraPermissionsAsync();
     if (cameraPermission.status !== 'granted') {
-      const requested = await ImagePicker.requestCameraPermissionsAsync();
-      if (!requested.granted) {
-        Alert.alert('Camera denied', 'Camera permission is required to capture a travel entry photo.');
+      const requestedCamera = await ImagePicker.requestCameraPermissionsAsync();
+      const cameraGranted = requestedCamera.status === 'granted';
+
+      if (!cameraGranted) {
+        showPermissionPrompt({
+          permissionName: 'Camera',
+          reason: 'Enable camera permission in settings to capture travel photos.',
+        });
         return;
       }
     }
 
+    const locationPermission = await Location.getForegroundPermissionsAsync();
+    if (locationPermission.status !== 'granted') {
+      const requestedLocation = await Location.requestForegroundPermissionsAsync();
+      const locationGranted = requestedLocation.status === 'granted';
+
+      if (!locationGranted) {
+        showPermissionPrompt({
+          permissionName: 'Location',
+          reason: 'Enable location permission in settings to auto-fill your address after taking a photo.',
+        });
+      }
+    }
+
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.8,
     });
 
-    if (result.canceled || !result.assets?.length) {
+    if (result.canceled) {
       return;
     }
 
-    setImageUri(result.assets[0].uri);
+    if (!result.assets?.length) {
+      return;
+    }
+
+    const capturedImageUri = result.assets[0].uri;
+    setImageUri(capturedImageUri);
     setErrors((previous) => ({ ...previous, image: undefined }));
     await getAddressFromCurrentLocation();
   };
 
+  const handleRemovePhoto = () => {
+    showThemedPrompt({
+      title: 'Remove photo?',
+      message: 'This will remove the selected photo from this entry.',
+      actions: [
+        {
+          label: 'Cancel',
+          variant: 'cancel',
+        },
+        {
+          label: 'Remove',
+          onPress: () => {
+            setImageUri('');
+            setIsImagePreviewOpen(false);
+          },
+        },
+      ],
+    });
+  };
+
   const notifyOnSave = async () => {
     try {
-      await scheduleNotificationAsync({
+      await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Travel entry saved',
           body: 'Your travel diary entry has been saved successfully.',
@@ -215,22 +290,30 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
 
   const handleSave = async () => {
     if (!validateBeforeSave()) {
-      Alert.alert('Incomplete entry', 'Please complete all required fields before saving.');
+      showThemedPrompt({
+        title: 'Incomplete entry',
+        message: 'Please complete all required fields before saving.',
+        actions: [{ label: 'OK' }],
+      });
       return;
     }
 
     const nextEntry: TravelEntry = {
-      id: `${Date.now()}`,
+      id: editingEntry?.id ?? `${Date.now()}`,
       title: entryTitle.trim(),
       description: description.trim(),
       imageUri,
       address: address.trim(),
-      createdAt: new Date().toISOString(),
+      createdAt: editingEntry?.createdAt ?? new Date().toISOString(),
     };
 
-    const saved = onSaveEntry(nextEntry);
+    const saved = isEditing ? onUpdateEntry(nextEntry) : onSaveEntry(nextEntry);
     if (!saved) {
-      Alert.alert('Save failed', 'Entry did not pass validation. Please review your fields and try again.');
+      showThemedPrompt({
+        title: 'Save failed',
+        message: 'Entry did not pass validation. Please review your fields and try again.',
+        actions: [{ label: 'OK' }],
+      });
       return;
     }
 
@@ -241,24 +324,59 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
 
   return (
     <SafeAreaView style={[styles.container, isDarkMode ? styles.containerDark : styles.containerLight]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.topBar}>
-          <Text style={[styles.screenTitle, isDarkMode ? styles.textDark : styles.textLight]}>New Entry</Text>
-        </View>
-
-        <Pressable
-          style={[styles.cameraTile, isDarkMode ? styles.cardDark : styles.cardLight]}
-          onPress={() => void handleTakePicture()}
-        >
-          {imageUri ? (
+      <View style={styles.topBar}>
+        <BackHeader
+          title={isEditing ? 'Edit Entry' : 'New Entry'}
+          isDarkMode={isDarkMode}
+          onBack={() => navigation.goBack()}
+        />
+        <ThemeToggle isDarkMode={isDarkMode} onToggle={onToggleTheme} />
+      </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        stickyHeaderIndices={[0]}
+        showsVerticalScrollIndicator={false}
+      >
+        {imageUri ? (
+          <Pressable
+            style={[styles.cameraTile, isDarkMode ? styles.cardDark : styles.cardLight]}
+            onPress={() => setIsImagePreviewOpen(true)}
+          >
             <Image source={{ uri: imageUri }} style={styles.preview} />
-          ) : (
-            <>
-              <Ionicons name="camera-outline" size={34} color={isDarkMode ? '#f2f4f7' : '#101828'} />
-              <Text style={[styles.cameraTileText, isDarkMode ? styles.textDark : styles.textLight]}>take a photo</Text>
-            </>
-          )}
-        </Pressable>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={[styles.cameraTile, isDarkMode ? styles.cameraTileDark : styles.cameraTileLight]}
+            onPress={() => void handleTakePicture()}
+          >
+            <View style={{ flex: 1, width: '100%', height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="camera-outline" size={34} color={isDarkMode ? '#f2f2f2' : '#111111'} />
+              <Text style={[styles.cameraTileText, { color: isDarkMode ? '#f2f2f2' : '#111111', textAlign: 'center', width: '100%' }]}>take a photo</Text>
+            </View>
+          </Pressable>
+        )}
+        {!!imageUri && (
+          <View style={styles.photoActionsRow}>
+            <Pressable
+              style={[styles.photoActionIconButton, isDarkMode ? styles.photoActionIconButtonDark : styles.photoActionIconButtonLight]}
+              onPress={() => void handleTakePicture()}
+              accessibilityRole="button"
+              accessibilityLabel="Retake photo"
+            >
+              <Ionicons name="camera-reverse-outline" size={20} color={isDarkMode ? '#f2f2f2' : '#111111'} />
+            </Pressable>
+
+            <Pressable
+              style={[styles.photoActionIconButton, isDarkMode ? styles.photoActionIconButtonDark : styles.photoActionIconButtonLight]}
+              onPress={handleRemovePhoto}
+              accessibilityRole="button"
+              accessibilityLabel="Remove photo"
+            >
+              <Ionicons name="trash-outline" size={20} color="#b42318" />
+            </Pressable>
+          </View>
+        )}
         {!!errors.image && <Text style={styles.errorText}>{errors.image}</Text>}
 
         <Text style={[styles.label, isDarkMode ? styles.textDark : styles.textLight]}>Entry Title</Text>
@@ -310,9 +428,26 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
         {!!errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
       </ScrollView>
 
-      <Pressable style={styles.saveFab} onPress={() => void handleSave()} accessibilityLabel="Save entry">
-        <Ionicons name="save-outline" size={24} color="#ffffff" />
+      <Pressable
+        style={isDarkMode ? styles.saveFabDark : styles.saveFabLight}
+        onPress={() => void handleSave()}
+        accessibilityLabel="Save entry"
+      >
+        <Ionicons
+          name="save-outline"
+          size={24}
+          color={isDarkMode ? '#111111' : '#ffffff'}
+        />
       </Pressable>
+
+      <Modal visible={isImagePreviewOpen} animationType="fade" transparent>
+        <View style={styles.previewModalBackdrop}>
+          <Pressable style={styles.previewModalCloseButton} onPress={() => setIsImagePreviewOpen(false)}>
+            <Ionicons name="close" size={22} color="#ffffff" />
+          </Pressable>
+          <Image source={{ uri: imageUri }} style={styles.previewModalImage} resizeMode="contain" />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -1,6 +1,16 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+    unfilledDark: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: '#f2f2f2',
+    },
+    unfilledLabelDark: {
+      color: '#f2f2f2',
+      fontSize: 15,
+      fontWeight: '700',
+    },
   button: {
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -8,20 +18,22 @@ export const styles = StyleSheet.create({
     minWidth: 110,
     alignItems: 'center',
   },
-  primary: {
-    backgroundColor: '#007a5e',
-  },
-  danger: {
-    backgroundColor: '#b42318',
-  },
-  neutral: {
-    backgroundColor: '#475467',
-  },
-  label: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
+    primaryLight: {
+      backgroundColor: '#ffffff',
+    },
+    primaryDark: {
+      backgroundColor: '#111111',
+    },
+    labelLight: {
+      color: '#111111',
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    labelDark: {
+      color: '#f2f2f2',
+      fontSize: 15,
+      fontWeight: '700',
+    },
   pressed: {
     opacity: 0.85,
   },

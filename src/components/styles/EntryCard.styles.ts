@@ -12,8 +12,8 @@ export const styles = StyleSheet.create({
     borderColor: '#d0d5dd',
   },
   cardDark: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
+    backgroundColor: '#151515',
+    borderColor: '#3a3a3a',
   },
   image: {
     width: '100%',
@@ -36,14 +36,27 @@ export const styles = StyleSheet.create({
     fontSize: 13,
   },
   textLight: {
-    color: '#101828',
+    color: '#111111',
   },
   textDark: {
-    color: '#f2f4f7',
+    color: '#f2f2f2',
   },
   date: {
     color: '#667085',
     fontSize: 12,
-    marginBottom: 4,
+  },
+  actionsRow: {
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  actionsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconButton: {
+    padding: 2,
   },
 });

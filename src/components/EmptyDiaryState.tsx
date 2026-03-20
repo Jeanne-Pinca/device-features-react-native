@@ -16,10 +16,10 @@ export function EmptyDiaryState({ onAddEntry, isDarkMode }: EmptyDiaryStateProps
       </View>
 
       <Text style={[styles.bodyText, isDarkMode ? styles.textDark : styles.textLight]}>
-        Your personal diary for your travelsm log your first entry!
+        Your personal travel diary. Log your first entry.
       </Text>
 
-      <PrimaryButton label="Add entry" onPress={onAddEntry} />
+      <PrimaryButton label="Add entry" onPress={onAddEntry} isDarkMode={!isDarkMode} />
     </View>
   );
 }

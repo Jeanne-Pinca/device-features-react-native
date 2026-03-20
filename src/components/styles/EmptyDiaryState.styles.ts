@@ -18,12 +18,12 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
   },
   logoCircleLight: {
-    backgroundColor: '#eaf2ff',
-    borderColor: '#b3ccff',
+    backgroundColor: '#f0f0f0',
+    borderColor: '#cfcfcf',
   },
   logoCircleDark: {
-    backgroundColor: '#1f2a44',
-    borderColor: '#3f5fa0',
+    backgroundColor: '#111111',
+    borderColor: '#3a3a3a',
   },
   logoText: {
     fontSize: 44,
@@ -36,9 +36,9 @@ export const styles = StyleSheet.create({
     lineHeight: 22,
   },
   textLight: {
-    color: '#101828',
+    color: '#111111',
   },
   textDark: {
-    color: '#f2f4f7',
+    color: '#f2f2f2',
   },
 });

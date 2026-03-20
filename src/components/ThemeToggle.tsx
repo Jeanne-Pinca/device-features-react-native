@@ -19,7 +19,7 @@ export function ThemeToggle({ isDarkMode, onToggle }: ThemeToggleProps) {
       <Ionicons
         name={isDarkMode ? 'sunny-outline' : 'moon-outline'}
         size={20}
-        color={isDarkMode ? '#facc15' : '#1f2937'}
+        color={isDarkMode ? '#f2f2f2' : '#111111'}
       />
     </Pressable>
   );

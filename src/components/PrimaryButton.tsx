@@ -6,21 +6,22 @@ type PrimaryButtonProps = {
   label: string;
   onPress: () => void;
   tone?: 'primary' | 'danger' | 'neutral';
+  isDarkMode?: boolean;
 };
 
-export function PrimaryButton({ label, onPress, tone = 'primary' }: PrimaryButtonProps) {
+export function PrimaryButton({ label, onPress, tone = 'primary', isDarkMode }: PrimaryButtonProps & { isDarkMode: boolean }) {
+  // If tone is 'neutral', treat as unfilled button
+  const isUnfilled = tone === 'neutral';
   return (
     <Pressable
       style={({ pressed }) => [
         styles.button,
-        tone === 'primary' && styles.primary,
-        tone === 'danger' && styles.danger,
-        tone === 'neutral' && styles.neutral,
+        isUnfilled && isDarkMode ? styles.unfilledDark : isDarkMode ? styles.primaryDark : styles.primaryLight,
         pressed && styles.pressed,
       ]}
       onPress={onPress}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={isUnfilled && isDarkMode ? styles.unfilledLabelDark : isDarkMode ? styles.labelDark : styles.labelLight}>{label}</Text>
     </Pressable>
   );
 }
