@@ -1,4 +1,5 @@
 import { FlatList, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -80,7 +81,12 @@ export function HomeScreen({
           <View style={[styles.summaryContainer, isDarkMode ? styles.summaryContainerDark : styles.summaryContainerLight]}>
             <View style={styles.summaryLeftColumn}>
               <View style={[styles.logoSphere, isDarkMode ? styles.logoSphereDark : styles.logoSphereLight]}>
-                <Text style={[styles.logoSphereText, isDarkMode ? styles.textDark : styles.textLight]}>H</Text>
+                <Ionicons
+                  name="globe-outline"
+                  size={120}
+                  color={isDarkMode ? '#f2f2f2' : '#111111'}
+                  style={{ alignSelf: 'center' }}
+                />
               </View>
             </View>
 
