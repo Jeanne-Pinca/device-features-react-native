@@ -39,6 +39,6 @@ export const styles = StyleSheet.create({
     color: '#111111',
   },
   textDark: {
-    color: '#f2f2f2',
+     color: '#ffffff',
   },
 });

@@ -86,7 +86,7 @@ export function HomeScreen({
 
             <View style={styles.summaryRightColumn}>
               <View style={[styles.entriesCapsule, isDarkMode ? styles.entriesCapsuleDark : styles.entriesCapsuleLight]}>
-                <Text style={[styles.entriesCapsuleText, isDarkMode ? styles.textDark : styles.textLight]}>
+                <Text style={isDarkMode ? styles.entriesCapsuleTextDark : styles.entriesCapsuleTextLight}>
                   {entryCountLabel}
                 </Text>
               </View>

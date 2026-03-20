@@ -12,7 +12,7 @@ type FloatingActionButtonProps = {
 export function FloatingActionButton({ onPress, accessibilityLabel, isDarkMode }: FloatingActionButtonProps) {
   return (
     <Pressable
-      style={({ pressed }) => [isDarkMode ? styles.buttonDark : styles.buttonLight, pressed && styles.pressed]}
+      style={({ pressed }) => [isDarkMode ? styles.buttonLight : styles.buttonDark, pressed && styles.pressed]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
