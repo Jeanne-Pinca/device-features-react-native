@@ -4,12 +4,15 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
+import { EmptyHomeScreen } from './src/screens/EmptyHomeScreen';
 import { HomeScreen, RootStackParamList } from './src/screens/HomeScreen';
 import { TravelEntryScreen } from './src/screens/TravelEntryScreen';
-import { loadTravelEntries, saveTravelEntries } from './src/storage/travelStorage';
+import { isValidTravelEntry, loadTravelEntries, saveTravelEntries } from './src/storage/travelStorage';
 import type { TravelEntry } from './src/types/travelEntry';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const MIN_REFRESH_MS = 500;
 
 export default function App() {
   const [entries, setEntries] = useState<TravelEntry[]>([]);
@@ -39,8 +42,15 @@ export default function App() {
     return isDarkMode ? DarkTheme : DefaultTheme;
   }, [isDarkMode]);
 
+  const validEntries = useMemo(() => entries.filter(isValidTravelEntry), [entries]);
+
   const addEntry = (entry: TravelEntry) => {
+    if (!isValidTravelEntry(entry)) {
+      return false;
+    }
+
     setEntries((previous) => [entry, ...previous]);
+    return true;
   };
 
   const removeEntry = (id: string) => {
@@ -53,10 +63,18 @@ export default function App() {
 
   const refreshEntries = async () => {
     setIsRefreshingEntries(true);
+    const refreshStartedAt = Date.now();
+
     try {
       const stored = await loadTravelEntries();
       setEntries(stored);
     } finally {
+      const elapsed = Date.now() - refreshStartedAt;
+      const remainingDelay = Math.max(0, MIN_REFRESH_MS - elapsed);
+      if (remainingDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingDelay));
+      }
+
       setIsRefreshingEntries(false);
     }
   };
@@ -75,15 +93,25 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Home" options={{ headerShown: false }}>
           {(props) => (
-            <HomeScreen
-              {...props}
-              entries={entries}
-              onRemoveEntry={removeEntry}
-              onRefreshEntries={refreshEntries}
-              isRefreshingEntries={isRefreshingEntries}
-              onToggleTheme={toggleTheme}
-              isDarkMode={isDarkMode}
-            />
+            validEntries.length === 0 ? (
+              <EmptyHomeScreen
+                {...props}
+                onRefreshEntries={refreshEntries}
+                isRefreshingEntries={isRefreshingEntries}
+                onToggleTheme={toggleTheme}
+                isDarkMode={isDarkMode}
+              />
+            ) : (
+              <HomeScreen
+                {...props}
+                entries={validEntries}
+                onRemoveEntry={removeEntry}
+                onRefreshEntries={refreshEntries}
+                isRefreshingEntries={isRefreshingEntries}
+                onToggleTheme={toggleTheme}
+                isDarkMode={isDarkMode}
+              />
+            )
           )}
         </Stack.Screen>
         <Stack.Screen name="TravelEntry" options={{ headerShown: false }}>
