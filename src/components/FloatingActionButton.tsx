@@ -6,17 +6,18 @@ import { styles } from './styles/FloatingActionButton.styles';
 type FloatingActionButtonProps = {
   onPress: () => void;
   accessibilityLabel: string;
+  isDarkMode: boolean;
 };
 
-export function FloatingActionButton({ onPress, accessibilityLabel }: FloatingActionButtonProps) {
+export function FloatingActionButton({ onPress, accessibilityLabel, isDarkMode }: FloatingActionButtonProps) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      style={({ pressed }) => [isDarkMode ? styles.buttonDark : styles.buttonLight, pressed && styles.pressed]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
     >
-      <Ionicons name="add" size={28} color="#ffffff" />
+      <Ionicons name="add" size={28} color={isDarkMode ? '#111111' : '#ffffff'} />
     </Pressable>
   );
 }

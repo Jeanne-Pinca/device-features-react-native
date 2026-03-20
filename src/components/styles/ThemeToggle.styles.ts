@@ -10,11 +10,11 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonLight: {
-    backgroundColor: '#e4e7ec',
-    borderColor: '#d0d5dd',
+    backgroundColor: '#ffffff',
+    borderColor: '#cfcfcf',
   },
   buttonDark: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
+    backgroundColor: '#151515',
+    borderColor: '#3a3a3a',
   },
 });

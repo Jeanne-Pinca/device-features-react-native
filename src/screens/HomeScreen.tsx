@@ -4,13 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EntryCard } from '../components/EntryCard';
 import { FloatingActionButton } from '../components/FloatingActionButton';
+import { showThemedPrompt } from '../components/ThemedPrompt';
 import { ThemeToggle } from '../components/ThemeToggle';
 import type { TravelEntry } from '../types/travelEntry';
 import { styles } from './styles/HomeScreen.styles';
 
 export type RootStackParamList = {
   Home: undefined;
-  TravelEntry: undefined;
+  TravelEntry: { entryId?: string } | undefined;
+  EntryDetails: { entryId: string };
 };
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'> & {
@@ -32,6 +34,26 @@ export function HomeScreen({
   isDarkMode,
 }: HomeScreenProps) {
   const openNewEntry = () => navigation.navigate('TravelEntry');
+  const openEntryDetails = (entryId: string) => navigation.navigate('EntryDetails', { entryId });
+  const openEditEntry = (entryId: string) => navigation.navigate('TravelEntry', { entryId });
+
+  const confirmRemoveEntry = (entryId: string) => {
+    showThemedPrompt({
+      title: 'Delete entry?',
+      message: 'This entry will be permanently removed.',
+      actions: [
+        {
+          label: 'Cancel',
+          variant: 'cancel',
+        },
+        {
+          label: 'Delete',
+          onPress: () => onRemoveEntry(entryId),
+        },
+      ],
+    });
+  };
+
   const entryCountLabel = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
 
   return (
@@ -45,7 +67,15 @@ export function HomeScreen({
         style={styles.scroll}
         data={entries}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <EntryCard entry={item} onRemove={onRemoveEntry} isDarkMode={isDarkMode} />}
+        renderItem={({ item }) => (
+          <EntryCard
+            entry={item}
+            onView={openEntryDetails}
+            onEdit={openEditEntry}
+            onRemove={confirmRemoveEntry}
+            isDarkMode={isDarkMode}
+          />
+        )}
         ListHeaderComponent={
           <View style={[styles.summaryContainer, isDarkMode ? styles.summaryContainerDark : styles.summaryContainerLight]}>
             <View style={styles.summaryLeftColumn}>
@@ -67,6 +97,7 @@ export function HomeScreen({
           </View>
         }
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshing={isRefreshingEntries}
         onRefresh={onRefreshEntries}
         alwaysBounceVertical
@@ -74,7 +105,7 @@ export function HomeScreen({
         overScrollMode="always"
       />
 
-      <FloatingActionButton onPress={openNewEntry} accessibilityLabel="Add new entry" />
+      <FloatingActionButton onPress={openNewEntry} accessibilityLabel="Add new entry" isDarkMode={isDarkMode} />
     </SafeAreaView>
   );
 }

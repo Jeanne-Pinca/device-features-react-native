@@ -7,10 +7,10 @@ export const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   containerLight: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f5f5f5',
   },
   containerDark: {
-    backgroundColor: '#111827',
+    backgroundColor: '#0b0b0b',
   },
   topBar: {
     marginTop: 8,
@@ -24,10 +24,10 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
   },
   textLight: {
-    color: '#101828',
+    color: '#111111',
   },
   textDark: {
-    color: '#f2f4f7',
+    color: '#f2f2f2',
   },
   scroll: {
     flex: 1,
@@ -70,12 +70,12 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoSphereLight: {
-    backgroundColor: '#eaf2ff',
-    borderColor: '#b3ccff',
+    backgroundColor: '#f0f0f0',
+    borderColor: '#cfcfcf',
   },
   logoSphereDark: {
-    backgroundColor: '#23324f',
-    borderColor: '#4965a3',
+    backgroundColor: '#1a1a1a',
+    borderColor: '#3f3f3f',
   },
   logoSphereText: {
     fontSize: 42,
@@ -96,12 +96,12 @@ export const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   entriesCapsuleLight: {
-    borderColor: '#c7d7fe',
-    backgroundColor: '#eef4ff',
+    borderColor: '#cfcfcf',
+    backgroundColor: '#ffffff',
   },
   entriesCapsuleDark: {
-    borderColor: '#4b66a1',
-    backgroundColor: '#1e2f4d',
+    borderColor: '#3f3f3f',
+    backgroundColor: '#ffffff',
   },
   entriesCapsuleText: {
     fontSize: 15,

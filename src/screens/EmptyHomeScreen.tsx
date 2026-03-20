@@ -39,6 +39,7 @@ export function EmptyHomeScreen({
             <EmptyDiaryState onAddEntry={() => navigation.navigate('TravelEntry')} isDarkMode={isDarkMode} />
           </View>
         }
+        showsVerticalScrollIndicator={false}
         refreshing={isRefreshingEntries}
         onRefresh={onRefreshEntries}
         alwaysBounceVertical
