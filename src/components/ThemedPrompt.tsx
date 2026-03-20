@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   actionLabelLight: {
-    color: '#111111',
+    color: '#ffffff',
   },
   actionLabelDark: {
     color: '#111111',

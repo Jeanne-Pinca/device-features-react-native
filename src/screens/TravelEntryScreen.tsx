@@ -335,7 +335,6 @@ export function TravelEntryScreen({
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        stickyHeaderIndices={[0]}
         showsVerticalScrollIndicator={false}
       >
         {imageUri ? (
@@ -351,8 +350,8 @@ export function TravelEntryScreen({
             onPress={() => void handleTakePicture()}
           >
             <View style={{ flex: 1, width: '100%', height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="camera-outline" size={34} color={isDarkMode ? '#f2f2f2' : '#111111'} />
-              <Text style={[styles.cameraTileText, { color: isDarkMode ? '#f2f2f2' : '#111111', textAlign: 'center', width: '100%' }]}>take a photo</Text>
+              <Ionicons name="camera-outline" size={34} color={isDarkMode ? '#f2f2f2' : '#111111'} style={{ marginBottom: 8 }} />
+              <Text style={[styles.cameraTileText, { color: isDarkMode ? '#f2f2f2' : '#111111', textAlign: 'center', width: '100%' }]}>TAKE A PHOTO</Text>
             </View>
           </Pressable>
         )}

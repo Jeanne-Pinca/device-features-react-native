@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { PrimaryButton } from './PrimaryButton';
 import { styles } from './styles/EmptyDiaryState.styles';
@@ -12,7 +13,12 @@ export function EmptyDiaryState({ onAddEntry, isDarkMode }: EmptyDiaryStateProps
   return (
     <View style={styles.wrapper}>
       <View style={[styles.logoCircle, isDarkMode ? styles.logoCircleDark : styles.logoCircleLight]}>
-        <Text style={[styles.logoText, isDarkMode ? styles.textDark : styles.textLight]}>H</Text>
+        <Ionicons
+          name="globe-outline"
+          size={110}
+          color={isDarkMode ? '#f2f2f2' : '#111111'}
+          style={{ alignSelf: 'center' }}
+        />
       </View>
 
       <Text style={[styles.bodyText, isDarkMode ? styles.textDark : styles.textLight]}>
