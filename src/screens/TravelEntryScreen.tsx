@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,7 +18,7 @@ import type { TravelEntry } from '../types/travelEntry';
 import { styles } from './styles/TravelEntryScreen.styles';
 
 type TravelEntryScreenProps = NativeStackScreenProps<RootStackParamList, 'TravelEntry'> & {
-  onSaveEntry: (entry: TravelEntry) => void;
+  onSaveEntry: (entry: TravelEntry) => boolean;
   isDarkMode: boolean;
 };
 
@@ -36,6 +36,7 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
   const [description, setDescription] = useState('');
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const skipUnsavedPromptRef = useRef(false);
 
   useEffect(() => {
     const askPermissions = async () => {
@@ -63,6 +64,10 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (skipUnsavedPromptRef.current) {
+        return;
+      }
+
       const hasUnsavedChanges = !!(imageUri || entryTitle.trim() || address.trim() || description.trim());
       if (!hasUnsavedChanges) {
         return;
@@ -79,6 +84,8 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
 
   useFocusEffect(
     useCallback(() => {
+      skipUnsavedPromptRef.current = false;
+
       return () => {
         setEntryTitle('');
         setImageUri('');
@@ -129,6 +136,8 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
       if (locationPermission.status !== 'granted') {
         const requested = await Location.requestForegroundPermissionsAsync();
         if (requested.status !== 'granted') {
+          setAddress('Location permission denied');
+          setErrors((previous) => ({ ...previous, address: undefined }));
           Alert.alert('Location denied', 'Location permission is required to resolve your current address.');
           return;
         }
@@ -140,6 +149,7 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
 
       if (!firstAddress) {
         setAddress('Address unavailable');
+        setErrors((previous) => ({ ...previous, address: undefined }));
         return;
       }
 
@@ -155,8 +165,10 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
         .join(', ');
 
       setAddress(formatted || 'Address unavailable');
+      setErrors((previous) => ({ ...previous, address: undefined }));
     } catch {
       setAddress('Address unavailable');
+      setErrors((previous) => ({ ...previous, address: undefined }));
       Alert.alert('Location error', 'Unable to fetch location right now.');
     } finally {
       setIsLoadingAddress(false);
@@ -203,6 +215,7 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
 
   const handleSave = async () => {
     if (!validateBeforeSave()) {
+      Alert.alert('Incomplete entry', 'Please complete all required fields before saving.');
       return;
     }
 
@@ -215,8 +228,14 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
       createdAt: new Date().toISOString(),
     };
 
-    onSaveEntry(nextEntry);
+    const saved = onSaveEntry(nextEntry);
+    if (!saved) {
+      Alert.alert('Save failed', 'Entry did not pass validation. Please review your fields and try again.');
+      return;
+    }
+
     await notifyOnSave();
+    skipUnsavedPromptRef.current = true;
     navigation.goBack();
   };
 
@@ -259,8 +278,15 @@ export function TravelEntryScreen({ navigation, onSaveEntry, isDarkMode }: Trave
         <Text style={[styles.label, isDarkMode ? styles.textDark : styles.textLight]}>Location</Text>
         <TextInput
           value={address}
-          editable={false}
-          placeholder={isLoadingAddress ? 'Resolving address...' : 'Address will auto-fill after taking a photo'}
+          onChangeText={(value) => {
+            setAddress(value);
+            setErrors((previous) => ({ ...previous, address: undefined }));
+          }}
+          placeholder={
+            isLoadingAddress
+              ? 'Resolving address...'
+              : 'Address auto-fills after photo, but you can edit it'
+          }
           placeholderTextColor="#98a2b3"
           style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
           multiline

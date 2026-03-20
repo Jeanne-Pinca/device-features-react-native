@@ -40,7 +40,8 @@
     "plugins": [
       "expo-image-picker",
       "expo-location",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-font"
     ]
   }
 }

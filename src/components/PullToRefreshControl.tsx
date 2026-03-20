@@ -2,7 +2,7 @@ import { RefreshControl } from 'react-native';
 
 type PullToRefreshControlProps = {
   refreshing: boolean;
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
   isDarkMode?: boolean;
 };
 
