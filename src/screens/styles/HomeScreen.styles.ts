@@ -96,20 +96,30 @@ export const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   entriesCapsuleLight: {
-    borderColor: '#cfcfcf',
-    backgroundColor: '#ffffff',
+    borderColor: '#111111',
+    backgroundColor: '#111111',
   },
   entriesCapsuleDark: {
     borderColor: '#3f3f3f',
     backgroundColor: '#ffffff',
   },
-  entriesCapsuleText: {
+  entriesCapsuleTextLight: {
     fontSize: 15,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     textAlign: 'left',
     alignSelf: 'flex-start',
+    color: '#ffffff',
+  },
+  entriesCapsuleTextDark: {
+    fontSize: 15,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    textAlign: 'left',
+    alignSelf: 'flex-start',
+    color: '#000000',
   },
   summarySubtitle: {
     fontSize: 14,
